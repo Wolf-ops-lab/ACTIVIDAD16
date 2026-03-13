@@ -3,10 +3,15 @@ const seats = document.querySelectorAll(".row .seat:not(.occupied)");
 const count = document.getElementById('count');
 const total = document.getElementById('total');
 const movieSelect = document.getElementById('movie');
+const currencySelect = document.getElementById("currency-one");
+const coin = document.getElementById("coin");
+const cargando = document.getElementById("cargando");
 
-populateUI();
+let currency = "USD";
 
 let ticketPrice = +movieSelect.value;
+
+populateUI();
 
 // Save selected movie index and price
 function setMovieData(movieIndex, moviePrice) {
@@ -44,7 +49,7 @@ function populateUI() {
     // Get selected movie data from localstorage
     const selectedMovieIndex = localStorage.getItem('selectedMovieIndex');
     const selectedMoviePrice = localStorage.getItem('selectedMoviePrice');
-    
+
     if (selectedMovieIndex !== null && selectedMoviePrice !== null) {
         movieSelect.selectedIndex = selectedMovieIndex;
         ticketPrice = +selectedMoviePrice;
@@ -68,3 +73,32 @@ container.addEventListener('click', (e) => {
 });
 //initial count and total 
 updateSelectedCount();
+
+currencySelect.addEventListener("change", () => {
+
+    currency = currencySelect.value;
+
+    cargando.style.display = "block";
+
+    fetch(`https://api.exchangerate-api.com/v4/latest/USD`)
+    .then(res => res.json())
+    .then(data => {
+
+        const rate = data.rates[currency];
+
+        ticketPrice = (+movieSelect.value * rate).toFixed(2);
+
+        coin.innerText = currency;
+
+        updateSelectedCount();
+
+        cargando.style.display = "none";
+
+    })
+    .catch(error => {
+
+        cargando.innerText = "Error loading API";
+
+    });
+
+});
